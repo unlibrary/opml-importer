@@ -3,7 +3,6 @@ defmodule OPMLImporter do
   Simple script to import an OPML file into an account.
   """
 
-  @type parsed_opml() :: term()
   @type feed_outline() :: %{
           required(:type) => String.t(),
           required(:url) => String.t(),
@@ -29,7 +28,7 @@ defmodule OPMLImporter do
   defp clear_current_sources_from_account(account) do
     account
     |> UnLib.Sources.list()
-    |> Enum.map(&UnLib.Sources.remove(&1, account))
+    |> Enum.each(&UnLib.Sources.remove(&1, account))
 
     :ok
   end
@@ -45,18 +44,15 @@ defmodule OPMLImporter do
   @spec download_file(String.t(), String.t()) :: :ok
   defp download_file(remote_url, local_path) do
     System.cmd("wget", [remote_url, "-O", local_path])
-
     :ok
   end
 
-  @spec import_opml(parsed_opml()) :: [UnLib.Source.t()]
-  defp import_opml([%{children: feeds}]) do
-    import_feeds(feeds)
-  end
-
-  @spec import_feed(parsed_opml()) :: [UnLib.Source.t()]
-  defp import_opml([feeds]) do
-    import_feeds(feeds)
+  @spec import_opml(term()) :: [UnLib.Source.t()]
+  defp import_opml(parsed_opml) do
+    case parsed_opml do
+      [%{children: feeds}] -> import_feeds(feeds)
+      [feeds] -> import_feeds(feeds)
+    end
   end
 
   @spec import_feeds([map()]) :: [UnLib.Source.t()]
