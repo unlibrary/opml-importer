@@ -49,10 +49,15 @@ defmodule OPMLImporter do
 
   @spec import_opml(term()) :: [UnLib.Source.t()]
   defp import_opml(parsed_opml) do
-    case parsed_opml do
-      [%{children: feeds}] -> import_feeds(feeds)
-      [feeds] -> import_feeds(feeds)
+    case Enum.at(parsed_opml, 0) do
+      %{children: _feeds} -> import_categories(parsed_opml)
+      _ -> import_feeds(parsed_opml)
     end
+  end
+
+  @spec import_categories([map()]) :: [UnLib.Source.t()]
+  defp import_categories(categories) do
+    Enum.flat_map(categories, &import_feeds(&1.children))
   end
 
   @spec import_feeds([map()]) :: [UnLib.Source.t()]
